@@ -68,6 +68,9 @@ func main() {
     prometheus.MustRegister(rebootRequired)
 
     distro := getDistro()
+    if distro == nil {
+        log.Fatal("Error: Distro not detected")
+    }
 
     go func() {
         for {
