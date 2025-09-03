@@ -22,7 +22,7 @@ func (Ubuntu) GetSecurityUpdates() int {
     output, err := cmd.Output()
     if err != nil {
         log.Printf("Error running apt-get: %v", err)
-        return 0
+        return -1
     }
     return parseUpdateCount(string(output))
 }
