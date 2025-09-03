@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 
 # Build a static Linux binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags="-s -w" -o bin/updates_exporter main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -ldflags="-s -w" -o updates_exporter main.go
 
 # Minimal runtime image
 FROM ubuntu:22.04
