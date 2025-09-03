@@ -23,6 +23,10 @@ var (
         Name: "pending_security_updates",
         Help: "Number of pending security updates",
     })
+    totalUpdates = prometheus.NewGauge(prometheus.GaugeOpts{
+        Name: "pending_updates",
+        Help: "Total number of pending updates",
+    })
     rebootRequired = prometheus.NewGauge(prometheus.GaugeOpts{
         Name: "reboot_required",
         Help: "1 if a reboot is required, 0 otherwise",
@@ -43,12 +47,14 @@ func updateMetrics(d distros.Distro) {
         return
     }
     securityUpdates.Set(float64(d.GetSecurityUpdates()))
+    totalUpdates.Set(float64(d.GetTotalUpdates()))
 
     if d.GetRebootRequired() {
         rebootRequired.Set(1)
     } else {
         rebootRequired.Set(0)
     }
+
 }
 
 func main() {
@@ -58,6 +64,7 @@ func main() {
     flag.Parse()
 
     prometheus.MustRegister(securityUpdates)
+    prometheus.MustRegister(totalUpdates)
     prometheus.MustRegister(rebootRequired)
 
     distro := getDistro()

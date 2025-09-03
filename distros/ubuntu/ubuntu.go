@@ -27,6 +27,16 @@ func (Ubuntu) GetSecurityUpdates() int {
     return parseUpdateCount(string(output))
 }
 
+func (Ubuntu) GetTotalUpdates() int {
+    cmd := exec.Command("sh", "-c", `apt-get -s dist-upgrade | grep "^Inst" | wc -l`)
+    output, err := cmd.Output()
+    if err != nil {
+        log.Printf("Error running apt-get: %v", err)
+        return -1
+    }
+    return parseUpdateCount(string(output))
+}
+
 func (Ubuntu) GetRebootRequired() bool {
     if _, err := os.Stat(rebootFile); err == nil {
         return true
