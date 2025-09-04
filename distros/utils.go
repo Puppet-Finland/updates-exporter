@@ -1,29 +1,41 @@
 package distros
 
 import (
-    "runtime"
-    "strings"
-    "os/exec"
+	"os"
+	"os/exec"
+	"runtime"
+	"strconv"
+	"strings"
 )
 
-// DetectLinuxDistro returns "ubuntu", "rhel", or "unknown"
+var rockyReleaseFile = "/etc/rocky-release"
+
+func ParseUpdateCount(out string) int {
+	count, _ := strconv.Atoi(strings.TrimSpace(out))
+	return count
+}
+
 func GetLinuxDistro() string {
-    if runtime.GOOS != "linux" {
-        return "unknown"
-    }
+	if runtime.GOOS != "linux" {
+		return "unknown"
+	}
 
-    out, err := exec.Command("sh", "-c", "cat /etc/os-release").Output()
-    if err != nil {
-        return "unknown"
-    }
+	if _, err := os.Stat(rockyReleaseFile); err == nil {
+		return "rocky"
+	}
 
-    s := strings.ToLower(string(out))
-    switch {
-    case strings.Contains(s, "ubuntu"):
-        return "ubuntu"
-    case strings.Contains(s, "rhel"), strings.Contains(s, "centos"), strings.Contains(s, "fedora"):
-        return "rhel"
-    default:
-        return "unknown"
-    }
+	out, err := exec.Command("sh", "-c", "cat /etc/os-release").Output()
+	if err != nil {
+		return "unknown"
+	}
+
+	s := strings.ToLower(string(out))
+	switch {
+	case strings.Contains(s, "ubuntu"):
+		return "ubuntu"
+	case strings.Contains(s, "rhel"), strings.Contains(s, "centos"), strings.Contains(s, "fedora"):
+		return "rhel"
+	default:
+		return "unknown"
+	}
 }

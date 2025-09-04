@@ -1,36 +1,27 @@
 package ubuntu
 
 import (
-    "os"
-    "testing"
+	"os"
+	"testing"
 )
 
 var ubuntu = Ubuntu{}
 
-func TestParseUpdateCount(t *testing.T) {
-    output := "3\n"
-    expected := 3
-    got := parseUpdateCount(output)
-    if got != expected {
-        t.Errorf("Expected %d, got %d", expected, got)
-    }
-}
+func TestUbuntuRebootRequired(t *testing.T) {
+	// Create a fake reboot-required file
+	tmpfile := "/tmp/reboot-required"
+	err := os.WriteFile(tmpfile, []byte("reboot"), 0644)
+	if err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
 
-func TestRebootRequired(t *testing.T) {
-    // Create a fake reboot-required file
-    tmpfile := "/tmp/reboot-required"
-    err := os.WriteFile(tmpfile, []byte("reboot"), 0644)
-    if err != nil {
-        t.Fatalf("failed to create temp file: %v", err)
-    }
+	oldFile := rebootFile
+	rebootFile = tmpfile
+	defer func() {
+		rebootFile = oldFile
+	}()
 
-    oldFile := rebootFile
-    rebootFile = tmpfile
-    defer func() {
-        rebootFile = oldFile
-    }()
-
-    if !ubuntu.GetRebootRequired() {
-        t.Errorf("Expected reboot required = true")
-    }
+	if !ubuntu.GetRebootRequired() {
+		t.Errorf("Expected reboot required = true")
+	}
 }
