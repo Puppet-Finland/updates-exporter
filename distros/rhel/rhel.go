@@ -10,7 +10,7 @@ import (
 type Rhel struct{}
 
 func (Rhel) GetSecurityUpdates() int {
-	cmd := exec.Command("sh", "-c", "dnf updateinfo list --sec-severity=Critical --sec-severity=Important --all | wc -l")
+	cmd := exec.Command("sh", "-c", "yes | dnf updateinfo list --sec-severity=Critical --sec-severity=Important --all | wc -l")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Printf("Error running dnf: %v", err)
@@ -20,7 +20,7 @@ func (Rhel) GetSecurityUpdates() int {
 }
 
 func (Rhel) GetTotalUpdates() int {
-	cmd := exec.Command("sh", "-c", "dnf updateinfo list --all | wc -l")
+	cmd := exec.Command("sh", "-c", "yes | dnf updateinfo list --all | wc -l")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Printf("Error running dnf: %v", err)
