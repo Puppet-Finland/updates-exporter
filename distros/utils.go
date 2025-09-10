@@ -9,7 +9,12 @@ import (
 	"strings"
 )
 
-var rockyReleaseFile = "/etc/rocky-release"
+var rhelReleases = []string{
+	"/etc/rocky-release",
+	"/etc/almalinux-release",
+	"/etc/redhat-release",
+}
+
 var osReleaseFile = "/etc/os-release"
 
 func ParseUpdateCount(out string) int {
@@ -22,8 +27,10 @@ func GetLinuxDistro() string {
 		return "unknown"
 	}
 
-	if _, err := os.Stat(rockyReleaseFile); err == nil {
-		return "rocky"
+	for _, releaseFile := range rhelReleases {
+		if _, err := os.Stat(releaseFile); err == nil {
+			return "rhel"
+		}
 	}
 
 	out, err := exec.Command("sh", "-c", fmt.Sprintf("cat %s", osReleaseFile)).Output()
@@ -35,8 +42,6 @@ func GetLinuxDistro() string {
 	switch {
 	case strings.Contains(s, "ubuntu"):
 		return "ubuntu"
-	case strings.Contains(s, "alma"):
-		return "alma"
 	case strings.Contains(s, "rhel"), strings.Contains(s, "centos"), strings.Contains(s, "fedora"):
 		return "rhel"
 	default:

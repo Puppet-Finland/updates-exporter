@@ -7,9 +7,9 @@ import (
 	utils "github.com/Puppet-Finland/updates-exporter/distros"
 )
 
-type Rocky struct{}
+type Rhel struct{}
 
-func (Rocky) GetSecurityUpdates() int {
+func (Rhel) GetSecurityUpdates() int {
 	cmd := exec.Command("sh", "-c", "dnf updateinfo list --sec-severity=Critical --sec-severity=Important --all | wc -l")
 	out, err := cmd.Output()
 	if err != nil {
@@ -19,7 +19,7 @@ func (Rocky) GetSecurityUpdates() int {
 	return utils.ParseUpdateCount(string(out))
 }
 
-func (Rocky) GetTotalUpdates() int {
+func (Rhel) GetTotalUpdates() int {
 	cmd := exec.Command("sh", "-c", "dnf updateinfo list --all | wc -l")
 	out, err := cmd.Output()
 	if err != nil {
@@ -29,8 +29,11 @@ func (Rocky) GetTotalUpdates() int {
 	return utils.ParseUpdateCount(string(out))
 }
 
-func (Rocky) GetRebootRequired() bool {
+func (Rhel) GetRebootRequired() bool {
 	cmd := exec.Command("needs-restarting", "-r")
-	err := cmd.Run()
-	return err != nil
+	if err := cmd.Run(); err != nil {
+		log.Printf("Error %v", err)
+		return false
+	}
+	return true
 }

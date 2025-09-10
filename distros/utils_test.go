@@ -6,14 +6,7 @@ import (
 )
 
 func getRelease(r string, t *testing.T) {
-	osReleaseFile = "/tmp/os-release"
 
-	os.WriteFile(osReleaseFile, []byte(r), 0644)
-	got := GetLinuxDistro()
-	expected := r
-	if got != expected {
-		t.Errorf("Expected %s, got %s", expected, got)
-	}
 }
 
 func TestParseUpdateCount(t *testing.T) {
@@ -26,17 +19,31 @@ func TestParseUpdateCount(t *testing.T) {
 }
 
 func TestGetDistros(t *testing.T) {
-	getRelease("alma", t)
-	getRelease("rhel", t)
-	getRelease("ubuntu", t)
-}
+	osReleaseFile = "/tmp/os-release"
+	rhelReleases = []string{
+		"/tmp/rocky-release",
+	}
+	os.Remove(rhelReleases[0])
 
-func TestGetDistrosRocky(t *testing.T) {
-	rockyReleaseFile = "/tmp/rocky-release"
-
-	os.WriteFile(rockyReleaseFile, []byte("rocky"), 0644)
+	os.WriteFile(osReleaseFile, []byte("ubuntu"), 0644)
 	got := GetLinuxDistro()
-	expected := "rocky"
+	expected := "ubuntu"
+	if got != expected {
+		t.Errorf("Expected %s, got %s", expected, got)
+	}
+
+	os.WriteFile(osReleaseFile, []byte("fedora"), 0644)
+	got = GetLinuxDistro()
+	expected = "rhel"
+	if got != expected {
+		t.Errorf("Expected %s, got %s", expected, got)
+	}
+
+	if err := os.WriteFile(rhelReleases[0], []byte("test"), 0644); err != nil {
+		t.Errorf("Error creating %s", rhelReleases[0])
+	}
+
+	got = GetLinuxDistro()
 	if got != expected {
 		t.Errorf("Expected %s, got %s", expected, got)
 	}
