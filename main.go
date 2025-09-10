@@ -39,7 +39,7 @@ func getDistro() distros.Distro {
 	switch distros.GetLinuxDistro() {
 	case "ubuntu":
 		return ubuntu.Ubuntu{}
-	case "rocky":
+	case "rocky", "alma":
 		return rhel.Rocky{}
 	default:
 		return nil
