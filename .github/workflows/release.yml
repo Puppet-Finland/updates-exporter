@@ -20,7 +20,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          fetch-tags: true
 
       # 2. Set up the Go environment
       - name: Set up Go
@@ -42,6 +41,8 @@ jobs:
       # 4. Run your existing Makefile target
       - name: Build Binary
         run: make build
+        env:
+          APP_VERSION: ${{ github.ref_name }}
 
       # 5. Create a GitHub Release and upload the binary
       - name: Create Release
