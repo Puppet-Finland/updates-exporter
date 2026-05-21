@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -33,6 +34,7 @@ var (
 		Name: "reboot_required",
 		Help: "1 if a reboot is required, 0 otherwise",
 	})
+	Version = "dev"
 )
 
 func getDistro() distros.Distro {
@@ -64,8 +66,14 @@ func updateMetrics(d distros.Distro) {
 func main() {
 	port := flag.Int("port", DEFAULT_PORT, "HTTP port")
 	interval := flag.Int("interval", DEFAULT_INTERVAL, "Metrics refresh interval (seconds)")
+	versionFlag := flag.Bool("v", false, "Print version")
 
 	flag.Parse()
+
+	if *versionFlag {
+		fmt.Printf("Updates-Exporter Version: %s\n", Version)
+		os.Exit(0)
+	}
 
 	prometheus.MustRegister(securityUpdates)
 	prometheus.MustRegister(totalUpdates)
