@@ -14,6 +14,7 @@ LDFLAGS = -ldflags "-X $(VERSION_FLAG_PATH)=$(VERSION)"
 
 # The default target
 build:
+	@mkdir -p bin
 	@echo "Building updates-exporter with version: $(VERSION)"
 	go build $(LDFLAGS) -o bin/updates-exporter main.go
 

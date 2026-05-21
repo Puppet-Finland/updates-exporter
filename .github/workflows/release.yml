@@ -1,0 +1,51 @@
+name: Release
+
+# Trigger this workflow only when a tag starting with 'v' is pushed
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Grant permissions needed to create a release and upload assets
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out the repository.
+      # fetch-depth: 0 ensures all tags and history are downloaded so your Makefile can see them.
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Set up the Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable' # Uses the latest stable Go version
+
+      # 3. Cache Go modules to make future builds faster
+      - name: Go Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runs-on }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runs-on }}-go-
+
+      # 4. Run your existing Makefile target
+      - name: Build Binary
+        run: make build
+
+      # 5. Create a GitHub Release and upload the binary
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bin/node-exporter
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true # Automatically generates a changelog based on PRs/commits
