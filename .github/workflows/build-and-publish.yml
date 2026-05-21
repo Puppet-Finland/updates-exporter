@@ -21,12 +21,11 @@ jobs:
 
     - name: Build binary
       run: |
-        go build -o updates_exporter main.go
+        go build -ldflags "-X main.Version=${{ github.ref_name }}" -o updates_exporter main.go
       env:
         CGO_ENABLED: 0
         GOOS: linux
         GOARCH: amd64
-        APP_VERSION: ${{ github.ref_name }}
 
     - name: Publish binary
       uses: softprops/action-gh-release@v1
