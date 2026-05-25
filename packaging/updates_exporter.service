@@ -1,5 +1,4 @@
 [Unit]
-description="Exports misc info about updates for Prometheus."
 After=network.target
 
 [Service]

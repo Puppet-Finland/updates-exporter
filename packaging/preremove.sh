@@ -1,4 +1,4 @@
 #!/bin/sh
 
-systemctl stop updates-exporter.service || true
-systemctl disable updates-exporter.service || true
+systemctl stop updates_exporter.service || true
+systemctl disable updates_exporter.service || true
