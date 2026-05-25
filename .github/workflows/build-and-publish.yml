@@ -34,3 +34,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Package RPM with NFPM
+      uses: goreleaser/nfpm-action@v2
+      with:
+        args: package --config nfpm.yaml --target updates-exporter.rpm
+      env:
+        VERSION: ${{ github.ref_name }}
+
+    - name: Upload RPM Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: updates-exporter.rpm
+        path: updates-exporter.rpm
