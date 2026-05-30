@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -21,10 +22,10 @@ import (
 )
 
 type Config struct {
-	Port     int  `mapstructure:"port"`
-	Interval int  `mapstructure:"interval"`
-	Version  bool `mapstructure:"version"`
-	Debug    bool `mapstructure:"debug"`
+	Port     int    `mapstructure:"port"`
+	Interval int    `mapstructure:"interval"`
+	Version  bool   `mapstructure:"version"`
+	LogLevel string `mapstructure:"log-level"`
 }
 
 const (
@@ -79,7 +80,7 @@ func main() {
 	logLevel.Set(slog.LevelInfo)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo, // Only log INFO, WARN, and ERROR
+		Level: logLevel,
 	}))
 	slog.SetDefault(logger)
 
@@ -90,18 +91,26 @@ func main() {
 		os.Exit(1)
 	}
 
+	// 3. Parse and dynamically set the log level from the configuration string
+	var parsedLevel slog.Level
+	// UnmarshalText handles string inputs like "DEBUG", "info", "Warn", "ERROR" case-insensitively
+	if err := parsedLevel.UnmarshalText([]byte(cfg.LogLevel)); err != nil {
+		slog.Error("Invalid log level provided, falling back to INFO", "invalid_level", cfg.LogLevel, "error", err)
+		parsedLevel = slog.LevelInfo
+	}
+
+	logLevel.Set(parsedLevel)
+
+	cfgBytes, err := json.Marshal(cfg)
+	if err != nil {
+		slog.Error("Unable to marshal config", "error", err)
+	}
+
+	slog.Debug("Application starting with config", "config", string(cfgBytes))
+
 	if cfg.Version {
 		fmt.Println(Version)
 		os.Exit(0)
-	}
-
-	if cfg.Debug {
-		cfgBytes, err := json.Marshal(cfg)
-		if err != nil {
-			slog.Error("Unable to marshal flags for debug", "error", err)
-		}
-
-		slog.Debug("Application starting with config", "config", string(cfgBytes))
 	}
 
 	prometheus.MustRegister(securityUpdates)
@@ -115,6 +124,8 @@ func main() {
 	}
 
 	go func() {
+		slog.Debug("Initialized go routine")
+
 		for {
 			updateMetrics(distro)
 			slog.Debug("Sleeping", "interval", cfg.Interval)
@@ -138,13 +149,19 @@ func loadConfig() (*Config, error) {
 	pflag.IntP("port", "p", DEFAULT_PORT, "HTTP port")
 	pflag.IntP("interval", "i", DEFAULT_INTERVAL, "Metrics refresh interval (seconds)")
 	pflag.BoolP("version", "v", false, "Print version")
-	pflag.BoolP("debug", "d", false, "Enables Debug messages")
+	pflag.StringP("log-level", "l", "info", "Log verbosity level (debug, info, warn, error)")
 
 	pflag.Parse()
 
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		return nil, fmt.Errorf("unable to bind flags: %w", err)
 	}
+
+	// Environment variable matching setup
+	viper.SetEnvPrefix("UPDATES_EXPORTER")
+	viper.AutomaticEnv()
+	// Critical: Converts dashes in flags ("log-level") to underscores for ENVs ("LOG_LEVEL")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
