@@ -26,6 +26,7 @@ type Config struct {
 	Interval int    `mapstructure:"interval"`
 	Version  bool   `mapstructure:"version"`
 	LogLevel string `mapstructure:"log-level"`
+	Config   string `mapstructure:"config"`
 }
 
 const (
@@ -150,6 +151,7 @@ func loadConfig() (*Config, error) {
 	pflag.IntP("interval", "i", DEFAULT_INTERVAL, "Metrics refresh interval (seconds)")
 	pflag.BoolP("version", "v", false, "Print version")
 	pflag.StringP("log-level", "l", "info", "Log verbosity level (debug, info, warn, error)")
+	pflag.StringP("config", "c", "", "Config file")
 
 	pflag.Parse()
 
@@ -163,10 +165,17 @@ func loadConfig() (*Config, error) {
 	// Critical: Converts dashes in flags ("log-level") to underscores for ENVs ("LOG_LEVEL")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".") // Look for the file in the current working directory
-	viper.AddConfigPath("/etc/updates-exporter/")
+	configFlag := viper.GetString("config")
+
+	if configFlag != "" {
+		slog.Info("Loading configuration from explicit config flag", "path", configFlag)
+		viper.SetConfigFile(configFlag)
+	} else {
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath(".") // Look for the file in the current working directory
+		viper.AddConfigPath("/etc/updates_exporter/")
+	}
 
 	if err := viper.ReadInConfig(); err != nil {
 		// It is acceptable if the config file is missing; we fall back to flags/defaults.
