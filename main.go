@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -75,9 +75,19 @@ func updateMetrics(d distros.Distro) {
 }
 
 func main() {
+	logLevel := &slog.LevelVar{}
+	logLevel.Set(slog.LevelInfo)
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo, // Only log INFO, WARN, and ERROR
+	}))
+	slog.SetDefault(logger)
+
+	// slog.Info("Application initialized", "version", "v1.4.2", "environment", "production")
 	cfg, err := loadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		slog.Error("Unable to load config", "error", err)
+		os.Exit(1)
 	}
 
 	if cfg.Version {
@@ -88,10 +98,10 @@ func main() {
 	if cfg.Debug {
 		cfgBytes, err := json.Marshal(cfg)
 		if err != nil {
-			log.Fatalf("Failed to marshal config for debugging: %v", err)
+			slog.Error("Unable to marshal flags for debug", "error", err)
 		}
 
-		log.Printf("Starting with: %s", string(cfgBytes))
+		slog.Debug("Application starting with config", "config", string(cfgBytes))
 	}
 
 	prometheus.MustRegister(securityUpdates)
@@ -100,19 +110,28 @@ func main() {
 
 	distro := getDistro()
 	if distro == nil {
-		log.Fatal("Error: Distro not detected")
+		slog.Error("Distro not detected")
+		os.Exit(1)
 	}
 
 	go func() {
 		for {
 			updateMetrics(distro)
+			slog.Debug("Sleeping", "interval", cfg.Interval)
 			time.Sleep(time.Duration(cfg.Interval) * time.Second)
 		}
 	}()
 
 	http.Handle("/metrics", promhttp.Handler())
-	fmt.Printf("Starting updates_exporter on :%d, updating every %d seconds\n", cfg.Port, cfg.Interval)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil))
+	addr := fmt.Sprintf(":%d", cfg.Port)
+	slog.Info("Starting HTTP server", "addr", addr, "interval", cfg.Interval)
+
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		slog.Error("HTTP server collapsed", "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("HTTP server stopped gracefully")
 }
 
 func loadConfig() (*Config, error) {
