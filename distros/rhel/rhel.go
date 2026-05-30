@@ -1,6 +1,7 @@
 package rhel
 
 import (
+	"errors"
 	"log/slog"
 	"os/exec"
 
@@ -32,8 +33,18 @@ func (Rhel) GetTotalUpdates() int {
 func (Rhel) GetRebootRequired() bool {
 	cmd := exec.Command("needs-restarting", "-r")
 	if err := cmd.Run(); err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			exitCode := exitErr.ExitCode()
+
+			if exitCode == 1 {
+				slog.Debug("System needs restarting", "exit_code", exitCode)
+				return true
+			}
+		}
 		slog.Error("Failed executing 'needs-restarting'", "error", err)
 		return false
 	}
-	return true
+	slog.Debug("System restart not needed")
+	return false
 }
