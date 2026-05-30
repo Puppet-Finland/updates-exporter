@@ -35,6 +35,11 @@ nfpms:
       - deb
       - rpm
 
+    overrides:
+      rpm:
+        dependencies:
+          - yum-utils
+
     # Where the binary should live inside the Linux filesystem after installation
     bindir: /usr/local/bin
 
