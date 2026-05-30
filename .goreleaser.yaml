@@ -42,6 +42,10 @@ nfpms:
       - src: ./packaging/updates_exporter.service
         dst: /usr/lib/systemd/system/updates_exporter.service
 
+      - src: ./packaging/config.yaml
+        dst: /etc/updates-exporter/config.yaml
+        type: "config|noreplace"
+
     scripts:
       postinstall: ./packaging/postinstall.sh
       preremove: ./packaging/preremove.sh

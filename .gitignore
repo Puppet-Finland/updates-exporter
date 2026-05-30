@@ -1,3 +1,4 @@
 bin/*
 updates-exporter
 config.yaml
+!packages/config.yaml
