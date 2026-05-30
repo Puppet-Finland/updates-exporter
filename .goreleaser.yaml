@@ -40,10 +40,10 @@ nfpms:
 
     contents:
       - src: ./packaging/updates_exporter.service
-        dst: /usr/lib/systemd/system/updates_exporter.service
+        dst: /etc/systemd/system/multi-user.target.wants/updates_exporter.service
 
-      - src: ./packaging/config.yaml
-        dst: /etc/updates-exporter/config.yaml
+      - src: ./packaging/config-example.yaml
+        dst: /etc/updates_exporter/config-example.yaml
         type: "config|noreplace"
 
     scripts:
