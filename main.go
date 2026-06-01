@@ -47,6 +47,10 @@ var (
 		Name: "reboot_required",
 		Help: "1 if a reboot is required, 0 otherwise",
 	})
+	latestCacheUpdate = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "latest_cache_update",
+		Help: "Unix timestamp of latest change to update cache",
+	})
 	Version = "dev"
 )
 
@@ -67,6 +71,7 @@ func updateMetrics(d distros.Distro) {
 	}
 	securityUpdates.Set(float64(d.GetSecurityUpdates()))
 	totalUpdates.Set(float64(d.GetTotalUpdates()))
+	latestCacheUpdate.Set(float64(d.GetLatestCacheChange().Unix()))
 
 	if d.GetRebootRequired() {
 		rebootRequired.Set(1)

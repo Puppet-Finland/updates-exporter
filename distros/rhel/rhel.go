@@ -4,11 +4,23 @@ import (
 	"errors"
 	"log/slog"
 	"os/exec"
+	"time"
 
 	utils "github.com/Puppet-Finland/updates-exporter/distros"
 )
 
 type Rhel struct{}
+
+const CACHE_DIR = "/var/cache/libdnf5"
+
+func (Rhel) GetLatestCacheChange() time.Time {
+	change, err := utils.GetLatestChangeInDir(CACHE_DIR, "")
+	if err != nil {
+		slog.Error("Failed to get latest cache change", "error", err)
+		return time.Time{}
+	}
+	return change
+}
 
 func (Rhel) GetSecurityUpdates() int {
 	cmd := exec.Command("sh", "-c", "dnf updateinfo list --assumeyes --cacheonly --sec-severity=Critical --sec-severity=Important --all | wc -l")
