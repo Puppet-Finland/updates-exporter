@@ -85,3 +85,20 @@ func GetLatestChangeInDir(cacheDir string, filterSuffix string) (time.Time, erro
 
 	return latestTime, nil
 }
+
+func DirExists(dir string) bool {
+	info, err := os.Stat(dir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			slog.Error("failed to stat dir", slog.String("dir", dir), slog.Any("error", err))
+		}
+		return false
+	}
+
+	if !info.IsDir() {
+		slog.Warn("provided dir exists but not a directory", slog.String("file", dir))
+		return false
+	}
+
+	return true
+}

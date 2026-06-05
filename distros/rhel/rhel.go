@@ -11,10 +11,13 @@ import (
 
 type Rhel struct{}
 
-const CACHE_DIR = "/var/cache/libdnf5"
+var cache_dir = "/var/cache/libdnf5"
 
 func (Rhel) GetLatestCacheChange() time.Time {
-	change, err := utils.GetLatestChangeInDir(CACHE_DIR, "")
+	if !utils.DirExists(cache_dir) {
+		cache_dir = "/var/cache/dnf"
+	}
+	change, err := utils.GetLatestChangeInDir(cache_dir, "")
 	if err != nil {
 		slog.Error("Failed to get latest cache change", slog.Any("error", err))
 		return time.Time{}
