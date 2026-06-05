@@ -90,18 +90,16 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	// slog.Info("Application initialized", "version", "v1.4.2", "environment", "production")
 	cfg, err := loadConfig()
 	if err != nil {
-		slog.Error("Unable to load config", "error", err)
+		slog.Error("Unable to load config", slog.Any("error", err))
 		os.Exit(1)
 	}
 
-	// 3. Parse and dynamically set the log level from the configuration string
 	var parsedLevel slog.Level
 	// UnmarshalText handles string inputs like "DEBUG", "info", "Warn", "ERROR" case-insensitively
 	if err := parsedLevel.UnmarshalText([]byte(cfg.LogLevel)); err != nil {
-		slog.Error("Invalid log level provided, falling back to INFO", "invalid_level", cfg.LogLevel, "error", err)
+		slog.Error("Invalid log level provided, falling back to INFO", slog.String("invalid_level", cfg.LogLevel), slog.Any("error", err))
 		parsedLevel = slog.LevelInfo
 	}
 
@@ -109,10 +107,10 @@ func main() {
 
 	cfgBytes, err := json.Marshal(cfg)
 	if err != nil {
-		slog.Error("Unable to marshal config", "error", err)
+		slog.Error("Unable to marshal config", slog.Any("error", err))
 	}
 
-	slog.Debug("Application starting with config", "config", string(cfgBytes))
+	slog.Debug("Application starting with config", slog.Any("config", string(cfgBytes)))
 
 	if cfg.Version {
 		fmt.Println(Version)
@@ -134,17 +132,17 @@ func main() {
 
 		for {
 			updateMetrics(distro)
-			slog.Debug("Sleeping", "interval", cfg.Interval)
+			slog.Debug("Sleeping", slog.Int("interval", cfg.Interval))
 			time.Sleep(time.Duration(cfg.Interval) * time.Second)
 		}
 	}()
 
 	http.Handle("/metrics", promhttp.Handler())
 	addr := fmt.Sprintf(":%d", cfg.Port)
-	slog.Info("Starting HTTP server", "addr", addr, "interval", cfg.Interval)
+	slog.Info("Starting HTTP server", slog.String("addr", addr), slog.Int("interval", cfg.Interval))
 
 	if err := http.ListenAndServe(addr, nil); err != nil {
-		slog.Error("HTTP server collapsed", "error", err)
+		slog.Error("HTTP server collapsed", slog.Any("error", err))
 		os.Exit(1)
 	}
 
@@ -173,7 +171,7 @@ func loadConfig() (*Config, error) {
 	configFlag := viper.GetString("config")
 
 	if configFlag != "" {
-		slog.Info("Loading configuration from explicit config flag", "path", configFlag)
+		slog.Info("Loading configuration from explicit config flag", slog.String("path", configFlag))
 		viper.SetConfigFile(configFlag)
 	} else {
 		viper.SetConfigName("config")

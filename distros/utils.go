@@ -53,7 +53,7 @@ func GetLinuxDistro() string {
 
 func GetLatestChangeInDir(cacheDir string, filterSuffix string) (time.Time, error) {
 	var latestTime time.Time
-	slog.Debug("GetLatestChangeInDir: Checking Directory", "directory", cacheDir, "filterSuffix", filterSuffix)
+	slog.Debug("GetLatestChangeInDir: Checking Directory", slog.String("directory", cacheDir), slog.String("filterSuffix", filterSuffix))
 	entries, err := os.ReadDir(cacheDir)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("Failed to read directory %s: %w", cacheDir, err)
@@ -67,7 +67,7 @@ func GetLatestChangeInDir(cacheDir string, filterSuffix string) (time.Time, erro
 		name := entry.Name()
 
 		if filterSuffix != "" && !strings.HasSuffix(name, filterSuffix) {
-			slog.Debug("GetLatestChangeInDir: File does not match filterSuffix, skipping", "file", name, "filterSuffix", filterSuffix)
+			slog.Debug("GetLatestChangeInDir: File does not match filterSuffix, skipping", slog.String("file", name), slog.String("filterSuffix", filterSuffix))
 			continue
 		}
 
@@ -78,7 +78,7 @@ func GetLatestChangeInDir(cacheDir string, filterSuffix string) (time.Time, erro
 
 		modTime := info.ModTime()
 		if modTime.After(latestTime) {
-			slog.Debug("GetLatestChangeInDir: Found newer modified file", "file", name, "old_time", latestTime, "new_time", modTime)
+			slog.Debug("GetLatestChangeInDir: Found newer modified file", slog.String("file", name), slog.Any("old_time", latestTime), slog.Any("new_time", modTime))
 			latestTime = modTime
 		}
 	}
