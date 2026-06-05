@@ -36,19 +36,19 @@ const (
 
 var (
 	securityUpdates = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "pending_security_updates",
+		Name: "updates_pending_security",
 		Help: "Number of pending security updates",
 	})
 	totalUpdates = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "pending_updates",
+		Name: "updates_pending",
 		Help: "Total number of pending updates",
 	})
 	rebootRequired = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "reboot_required",
+		Name: "updates_reboot_required",
 		Help: "1 if a reboot is required, 0 otherwise",
 	})
 	latestCacheUpdate = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "latest_cache_update",
+		Name: "updates_latest_cache_change",
 		Help: "Unix timestamp of latest change to update cache",
 	})
 	Version = "dev"
@@ -120,6 +120,7 @@ func main() {
 	prometheus.MustRegister(securityUpdates)
 	prometheus.MustRegister(totalUpdates)
 	prometheus.MustRegister(rebootRequired)
+	prometheus.MustRegister(latestCacheUpdate)
 
 	distro := getDistro()
 	if distro == nil {
