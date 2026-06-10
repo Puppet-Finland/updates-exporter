@@ -1,0 +1,56 @@
+# .goreleaser.yaml
+version: 2 # Make sure you are using the modern schema version
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: updates_exporter
+    main: ./main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags:
+      - -X main.Version={{.Version}}
+
+nfpms:
+  - id: updates_exporter
+    # Ties this nFPM package definition to the build configuration above
+    builds:
+      - updates_exporter
+
+    package_name: updates_exporter
+    vendor: "Puppeteers"
+    homepage: "https://www.puppeteers.net"
+    maintainer: "Ricky Cousins"
+    description: "Custom exporter for exposing misc info about updates for Prometheus"
+    license: MIT
+
+    # Formats you want nFPM to generate
+    formats:
+      - deb
+      - rpm
+
+    overrides:
+      rpm:
+        dependencies:
+          - yum-utils
+
+    # Where the binary should live inside the Linux filesystem after installation
+    bindir: /usr/local/bin
+
+    contents:
+      - src: ./packaging/updates_exporter.service
+        dst: /etc/systemd/system/updates_exporter.service
+
+      - src: ./packaging/config-example.yaml
+        dst: /etc/updates_exporter/config.yaml
+        type: "config|noreplace"
+
+    scripts:
+      postinstall: ./packaging/postinstall.sh
+      preremove: ./packaging/preremove.sh

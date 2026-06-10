@@ -1,0 +1,5 @@
+# In Seconds
+Interval: 3600
+Port: 9101
+# Log Level Options: debug, info, warn, error
+Log-Level: "info"
